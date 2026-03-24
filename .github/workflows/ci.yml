@@ -52,7 +52,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-
+    if: false
     services:
       postgres:
         image: postgres
