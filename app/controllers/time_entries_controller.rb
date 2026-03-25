@@ -1,6 +1,6 @@
 class TimeEntriesController < ApplicationController
   before_action :set_project
-  before_action :set_time_entry, only: [:update, :delete]
+  before_action :set_time_entry, only: [:update, :destroy]
 
   def index
     @time_entries = @project.time_entries.order(date: :desc)
@@ -24,7 +24,7 @@ class TimeEntriesController < ApplicationController
     end
   end
 
-  def delete
+  def destroy
     @time_entry.destroy
     head :no_content
   end

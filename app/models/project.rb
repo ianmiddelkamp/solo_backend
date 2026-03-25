@@ -4,4 +4,8 @@ class Project < ApplicationRecord
   has_many :rates
 
   validates :name, presence: true
+
+  def current_rate
+    rates.first&.rate
+  end
 end

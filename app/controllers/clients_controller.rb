@@ -1,18 +1,18 @@
 class ClientsController < ApplicationController
-  before_action :set_client, only: [:show, :update, :delete]
+  before_action :set_client, only: [:show, :update, :destroy]
 
   def index
-    render json: Client.order(:name)
+    render json: Client.includes(:rates).order(:name).as_json(methods: :current_rate)
   end
 
   def show
-    render json: @client
+    render json: @client.as_json(methods: :current_rate)
   end
 
   def create
     @client = Client.new(client_params)
     if @client.save
-      render json: @client, status: :created
+      render json: @client.as_json(methods: :current_rate), status: :created
     else
       render json: { errors: @client.errors.full_messages }, status: :unprocessable_entity
     end
@@ -20,13 +20,13 @@ class ClientsController < ApplicationController
 
   def update
     if @client.update(client_params)
-      render json: @client
+      render json: @client.as_json(methods: :current_rate)
     else
       render json: { errors: @client.errors.full_messages }, status: :unprocessable_entity
     end
   end
 
-  def delete
+  def destroy
     @client.destroy
     head :no_content
   end
@@ -38,6 +38,11 @@ class ClientsController < ApplicationController
   end
 
   def client_params
-    params.require(:client).permit(:name, :contact)
+    params.require(:client).permit(
+      :name, :contact_name,
+      :email1, :email2,
+      :phone1, :phone2,
+      :address1, :address2, :city, :state, :postcode, :country
+    )
   end
 end

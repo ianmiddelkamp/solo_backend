@@ -1,8 +1,11 @@
 class ProjectsController < ApplicationController
-  before_action :set_project, only: [:show, :update, :delete]
+  before_action :set_project, only: [:show, :update, :destroy]
 
   def index
-    render json: Project.includes(:client).order(:name).as_json(include: :client)
+    render json: Project.includes(:client, :rates).order(:name).as_json(
+      include: :client,
+      methods: :current_rate
+    )
   end
 
   def show
@@ -26,7 +29,7 @@ class ProjectsController < ApplicationController
     end
   end
 
-  def delete
+  def destroy
     @project.destroy
     head :no_content
   end
