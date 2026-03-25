@@ -2,6 +2,14 @@ require "prawn"
 require "prawn/table"
 
 class PdfGenerator
+  TERMS_DESCRIPTIONS = {
+    "NET 15"          => "Payment due within 15 days of invoice date.",
+    "NET 30"          => "Payment due within 30 days of invoice date.",
+    "NET 45"          => "Payment due within 45 days of invoice date.",
+    "NET 60"          => "Payment due within 60 days of invoice date.",
+    "Due on Receipt"  => "Payment due upon receipt of this invoice.",
+  }.freeze
+
   INDIGO     = "4338ca"
   LIGHT_GRAY = "f3f4f6"
   MID_GRAY   = "6b7280"
@@ -170,6 +178,10 @@ class PdfGenerator
     pdf.stroke_horizontal_rule
     pdf.move_down 8
     pdf.font_size(8) do
+      terms = @client.sales_terms.presence || "NET 15"
+      description = TERMS_DESCRIPTIONS.fetch(terms, "Payment due as per agreed terms.")
+      pdf.text "Payment terms: #{terms} — #{description}", color: MID_GRAY
+      pdf.move_down 4
       pdf.text "Thank you for your business.", color: MID_GRAY
     end
   end

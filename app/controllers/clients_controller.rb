@@ -42,7 +42,8 @@ class ClientsController < ApplicationController
       :name, :contact_name,
       :email1, :email2,
       :phone1, :phone2,
-      :address1, :address2, :city, :state, :postcode, :country
+      :address1, :address2, :city, :state, :postcode, :country,
+      :sales_terms
     )
   end
 end

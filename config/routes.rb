@@ -4,7 +4,11 @@ Rails.application.routes.draw do
   resource :business_profile, only: [:show, :update]
 
   resources :invoices, except: [:new, :edit] do
-    get :pdf, on: :member
+    member do
+      get  :pdf
+      post :regenerate_pdf
+      post :send_receipt
+    end
   end
 
   resources :clients do

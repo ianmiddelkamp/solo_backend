@@ -1,0 +1,22 @@
+Hi <%= @client.contact_name.presence || @client.name %>,
+
+Please find your invoice <%= @invoice.number %> attached.
+
+SUMMARY
+-------
+<% @items.each do |item| %>
+<%= item.time_entry.date.strftime("%d %b %Y") %> | <%= item.time_entry.project.name %> | <%= "%.2f" % item.hours %> hrs @ $<%= "%.2f" % item.rate %> = $<%= "%.2f" % item.amount %>
+<% end %>
+
+TOTAL: $<%= "%.2f" % @invoice.total %>
+
+Payment terms: <%= @client.sales_terms.presence || "NET 15" %>
+
+Thank you for your business.
+<% if @business.name.present? %>
+--
+<%= @business.name %>
+<%= @business.email %>
+<%= @business.phone %>
+<% if @business.hst_number.present? %>HST # <%= @business.hst_number %><% end %>
+<% end %>
