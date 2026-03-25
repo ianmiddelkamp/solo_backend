@@ -1,5 +1,5 @@
 class InvoicesController < ApplicationController
-  before_action :set_invoice, only: [:show, :update, :destroy, :pdf, :regenerate_pdf, :send_receipt]
+  before_action :set_invoice, only: [:show, :update, :destroy, :pdf, :regenerate_pdf, :send_invoice]
 
   def index
     invoices = Invoice.includes(:client).order(created_at: :desc)
@@ -48,14 +48,19 @@ class InvoicesController < ApplicationController
     head :no_content
   end
 
-  def send_receipt
+  def send_invoice
     unless @invoice.client.email1.present?
       render json: { error: "Client has no email address on file." }, status: :unprocessable_entity
       return
     end
 
-    InvoiceMailer.receipt(@invoice).deliver_later
-    render json: { message: "Receipt sent to #{@invoice.client.email1}." }
+    unless @invoice.pdf.attached?
+      render json: { error: "No PDF found. Please regenerate the PDF first." }, status: :unprocessable_entity
+      return
+    end
+
+    InvoiceMailer.invoice_email(@invoice).deliver_later
+    render json: { message: "Invoice sent to #{@invoice.client.email1}." }
   end
 
   def regenerate_pdf

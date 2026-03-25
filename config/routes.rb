@@ -7,7 +7,7 @@ Rails.application.routes.draw do
     member do
       get  :pdf
       post :regenerate_pdf
-      post :send_receipt
+      post :send_invoice
     end
   end
 
