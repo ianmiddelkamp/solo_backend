@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_25_183332) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_25_222058) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -127,10 +127,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_25_183332) do
     t.text "description"
     t.decimal "hours", precision: 5, scale: 2, null: false
     t.bigint "project_id", null: false
+    t.datetime "started_at"
+    t.datetime "stopped_at"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["project_id"], name: "index_time_entries_on_project_id"
     t.index ["user_id"], name: "index_time_entries_on_user_id"
+  end
+
+  create_table "timer_sessions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "description"
+    t.bigint "project_id", null: false
+    t.datetime "started_at", null: false
+    t.datetime "stopped_at"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["project_id"], name: "index_timer_sessions_on_project_id"
+    t.index ["user_id"], name: "index_timer_sessions_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -154,4 +168,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_25_183332) do
   add_foreign_key "rates", "users"
   add_foreign_key "time_entries", "projects"
   add_foreign_key "time_entries", "users"
+  add_foreign_key "timer_sessions", "projects"
+  add_foreign_key "timer_sessions", "users"
 end

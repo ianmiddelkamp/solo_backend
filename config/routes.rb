@@ -5,6 +5,12 @@ Rails.application.routes.draw do
 
   post "/auth/login", to: "auth#login"
 
+  get    "/timer",       to: "timer_sessions#current"
+  post   "/timer/start", to: "timer_sessions#start"
+  post   "/timer/stop",  to: "timer_sessions#stop"
+  patch  "/timer",       to: "timer_sessions#update"
+  delete "/timer",       to: "timer_sessions#cancel"
+
   resource :business_profile, only: [:show, :update]
 
   resources :invoices, except: [:new, :edit] do

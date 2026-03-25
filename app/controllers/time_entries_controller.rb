@@ -44,6 +44,6 @@ class TimeEntriesController < ApplicationController
   end
 
   def time_entry_params
-    params.require(:time_entry).permit(:user_id, :date, :hours, :description)
+    params.require(:time_entry).permit(:user_id, :date, :hours, :description, :started_at, :stopped_at)
   end
 end
