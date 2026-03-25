@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_25_222058) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_25_225618) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -121,6 +121,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_25_222058) do
     t.index ["user_id"], name: "index_rates_on_user_id"
   end
 
+  create_table "task_groups", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "position"
+    t.bigint "project_id", null: false
+    t.string "title"
+    t.datetime "updated_at", null: false
+    t.index ["project_id"], name: "index_task_groups_on_project_id"
+  end
+
+  create_table "tasks", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "position"
+    t.string "status"
+    t.bigint "task_group_id", null: false
+    t.string "title"
+    t.datetime "updated_at", null: false
+    t.index ["task_group_id"], name: "index_tasks_on_task_group_id"
+  end
+
   create_table "time_entries", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.date "date", null: false
@@ -166,6 +185,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_25_222058) do
   add_foreign_key "rates", "clients"
   add_foreign_key "rates", "projects"
   add_foreign_key "rates", "users"
+  add_foreign_key "task_groups", "projects"
+  add_foreign_key "tasks", "task_groups"
   add_foreign_key "time_entries", "projects"
   add_foreign_key "time_entries", "users"
   add_foreign_key "timer_sessions", "projects"
