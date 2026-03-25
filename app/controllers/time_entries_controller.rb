@@ -3,8 +3,12 @@ class TimeEntriesController < ApplicationController
   before_action :set_time_entry, only: [:update, :destroy]
 
   def index
-    @time_entries = @project.time_entries.order(date: :desc)
-    render json: @time_entries
+    @time_entries = @project.time_entries
+                             .includes(invoice_line_item: :invoice)
+                             .order(date: :desc)
+    render json: @time_entries.as_json(
+      include: { invoice_line_item: { include: { invoice: { methods: :number } } } }
+    )
   end
 
   def create
