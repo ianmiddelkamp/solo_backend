@@ -21,7 +21,7 @@ class TimerSessionsController < ApplicationController
     )
 
     # Mark task as in_progress when timer starts
-    Task.where(id: params[:task_id]).update_all(status: 'in_progress') if params[:task_id].present?
+    Task.where(id: params[:task_id]).update_all(status: "in_progress") if params[:task_id].present?
 
     render json: session_json(session), status: :created
   end

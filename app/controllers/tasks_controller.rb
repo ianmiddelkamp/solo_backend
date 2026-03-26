@@ -4,7 +4,7 @@ class TasksController < ApplicationController
 
   def create
     task = @task_group.tasks.build(task_params)
-    task.status ||= 'todo'
+    task.status ||= "todo"
     if task.save
       render json: task.as_json(only: %i[id title status position]), status: :created
     else
