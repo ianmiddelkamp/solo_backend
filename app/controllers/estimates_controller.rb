@@ -59,7 +59,7 @@ class EstimatesController < ApplicationController
     end
 
     changes = diff_since_last_sent(@estimate)
-    EstimateMailer.estimate_email(@estimate, changes).deliver_later
+    EstimateMailer.estimate_email(@estimate, changes).deliver_now
 
     @estimate.update!(
       last_sent_snapshot: @estimate.estimate_line_items.map { |i|

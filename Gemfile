@@ -36,6 +36,7 @@ gem "redis", ">= 4.0.1"
 gem "bcrypt", "~> 3.1.1"
 gem "jwt"
 gem "docx"
+gem "premailer-rails"
 
 group :development do
   gem "letter_opener_web"

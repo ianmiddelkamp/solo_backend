@@ -10,6 +10,13 @@ class InvoiceMailer < ApplicationMailer
       content: @invoice.pdf.download
     }
 
+    if @business.logo.attached?
+      attachments.inline["logo"] = {
+        data:      @business.logo.download,
+        mime_type: @business.logo.content_type
+      }
+    end
+
     mail(
       to:      @client.email1,
       subject: "Invoice #{invoice.number} from #{@business.name.presence || 'us'}"

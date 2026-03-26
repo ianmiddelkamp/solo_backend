@@ -12,6 +12,13 @@ class EstimateMailer < ApplicationMailer
       content: @estimate.pdf.download
     }
 
+    if @business.logo.attached?
+      attachments.inline["logo"] = {
+        data:      @business.logo.download,
+        mime_type: @business.logo.content_type
+      }
+    end
+
     mail(
       to:      @client.email1,
       subject: "Estimate #{estimate.number} from #{@business.name.presence || 'us'}"

@@ -59,7 +59,7 @@ class InvoicesController < ApplicationController
       return
     end
 
-    InvoiceMailer.invoice_email(@invoice).deliver_later
+    InvoiceMailer.invoice_email(@invoice).deliver_now
     render json: { message: "Invoice sent to #{@invoice.client.email1}." }
   end
 

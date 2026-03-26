@@ -22,6 +22,8 @@ services:
       DB_NAME: invoice_prod
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
+      GMAIL_USER: ${GMAIL_USER}
+      GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD}
 
   sidekiq:
     volumes:
@@ -34,6 +36,8 @@ services:
       DB_NAME: invoice_prod
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
+      GMAIL_USER: ${GMAIL_USER}
+      GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD}
 
 volumes:
   db_prod_data:
