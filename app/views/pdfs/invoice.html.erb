@@ -32,10 +32,25 @@
   </tbody>
 </table>
 
+<% subtotal   = @items.sum(&:amount)
+   tax_amount = @items.sum { |i| i.amount * i.tax_rate / 100 }
+   tax_rate   = @items.map(&:tax_rate).find { |r| r > 0 } %>
 <div class="total-section">
-  <div>
-    <div class="total-label">Total</div>
-    <div class="total-amount">$<%= "%.2f" % @invoice.total %></div>
+  <div style="min-width:320px;">
+    <% if tax_amount > 0 %>
+      <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+        <span class="total-label">Subtotal</span>
+        <span style="font-size:12px; color:#374151;">$<%= "%.2f" % subtotal %></span>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+        <span class="total-label">HST (<%= "%.4g" % tax_rate %>%)<% if @business.hst_number.present? %> &middot; Reg# <%= @business.hst_number %><% end %></span>
+        <span style="font-size:12px; color:#374151;">$<%= "%.2f" % tax_amount %></span>
+      </div>
+    <% end %>
+    <div style="display:flex; justify-content:space-between; align-items:baseline; padding-top:6px; border-top:1px solid #e5e7eb;">
+      <span class="total-label">Total</span>
+      <span class="total-amount">$<%= "%.2f" % @invoice.total %></span>
+    </div>
   </div>
 </div>
 

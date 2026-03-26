@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_26_000004) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_26_000005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -58,6 +58,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_26_000004) do
     t.string "postcode"
     t.string "primary_color", default: "#4338ca"
     t.string "state"
+    t.decimal "tax_rate", precision: 5, scale: 2, default: "0.0", null: false
     t.datetime "updated_at", null: false
   end
 
@@ -87,6 +88,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_26_000004) do
     t.decimal "hours", precision: 5, scale: 2, null: false
     t.decimal "rate", precision: 8, scale: 2, null: false
     t.bigint "task_id", null: false
+    t.decimal "tax_rate", precision: 5, scale: 2, default: "0.0", null: false
     t.datetime "updated_at", null: false
     t.index ["estimate_id"], name: "index_estimate_line_items_on_estimate_id"
     t.index ["task_id"], name: "index_estimate_line_items_on_task_id"
@@ -110,6 +112,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_26_000004) do
     t.decimal "hours", precision: 5, scale: 2
     t.bigint "invoice_id", null: false
     t.decimal "rate", precision: 10, scale: 2
+    t.decimal "tax_rate", precision: 5, scale: 2, default: "0.0", null: false
     t.bigint "time_entry_id", null: false
     t.datetime "updated_at", null: false
     t.index ["invoice_id"], name: "index_invoice_line_items_on_invoice_id"

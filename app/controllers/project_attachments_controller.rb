@@ -28,7 +28,7 @@ class ProjectAttachmentsController < ApplicationController
     # This is safe as long as the show action uses disposition: "attachment" (which it does),
     # preventing the browser from rendering uploaded content inline.
     allowed = ALLOWED_TYPES.include?(file.content_type) ||
-              file.original_filename.to_s.downcase.end_with?('.md')
+              file.original_filename.to_s.downcase.end_with?(".md")
 
     unless allowed
       return render json: { error: "File type not allowed." }, status: :unprocessable_entity

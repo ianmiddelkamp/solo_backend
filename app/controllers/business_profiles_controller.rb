@@ -31,7 +31,7 @@ class BusinessProfilesController < ApplicationController
       :name, :email, :phone,
       :address1, :address2, :city, :state, :postcode, :country,
       :hst_number, :primary_color, :invoice_footer, :estimate_footer,
-      :default_payment_terms
+      :default_payment_terms, :tax_rate
     )
   end
 

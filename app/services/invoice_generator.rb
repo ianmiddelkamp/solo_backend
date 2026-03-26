@@ -1,8 +1,9 @@
 class InvoiceGenerator
   def initialize(client:, start_date: nil, end_date: nil)
-    @client = client
+    @client     = client
     @start_date = start_date
-    @end_date = end_date
+    @end_date   = end_date
+    @tax_rate   = BusinessProfile.instance.tax_rate || 0
   end
 
   def generate!
@@ -25,11 +26,15 @@ class InvoiceGenerator
           description: build_description(entry),
           hours: entry.hours,
           rate: rate,
-          amount: entry.hours * rate
+          amount: entry.hours * rate,
+          tax_rate: @tax_rate
         )
       end
 
-      invoice.update!(total: invoice.invoice_line_items.sum(:amount))
+      items    = invoice.invoice_line_items.reload
+      subtotal = items.sum(:amount)
+      tax      = items.sum { |i| i.amount * i.tax_rate / 100 }
+      invoice.update!(total: subtotal + tax)
       invoice
     end
   end

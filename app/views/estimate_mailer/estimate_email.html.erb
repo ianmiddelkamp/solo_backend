@@ -82,6 +82,19 @@
                 <td class="right">$<%= "%.2f" % item.amount %></td>
               </tr>
             <% end %>
+            <% subtotal   = @items.sum(&:amount)
+               tax_amount = @items.sum { |i| i.amount * i.tax_rate / 100 }
+               tax_rate   = @items.map(&:tax_rate).find { |r| r > 0 } %>
+            <% if tax_amount > 0 %>
+              <tr>
+                <td colspan="3" class="right" style="color:#6b7280;">Subtotal</td>
+                <td class="right" style="color:#6b7280;">$<%= "%.2f" % subtotal %></td>
+              </tr>
+              <tr>
+                <td colspan="3" class="right" style="color:#6b7280;">HST (<%= "%.4g" % tax_rate %>%)</td>
+                <td class="right" style="color:#6b7280;">$<%= "%.2f" % tax_amount %></td>
+              </tr>
+            <% end %>
             <tr class="total-row">
               <td colspan="3" class="right">Estimated Total</td>
               <td class="right">$<%= "%.2f" % @estimate.total %></td>

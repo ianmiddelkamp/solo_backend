@@ -1,6 +1,7 @@
 class EstimateGenerator
   def initialize(project:)
-    @project = project
+    @project  = project
+    @tax_rate = BusinessProfile.instance.tax_rate || 0
   end
 
   def generate!
@@ -22,11 +23,15 @@ class EstimateGenerator
           description: build_description(task),
           hours: hours,
           rate: rate,
-          amount: hours * rate
+          amount: hours * rate,
+          tax_rate: @tax_rate
         )
       end
 
-      estimate.update!(total: estimate.estimate_line_items.sum(:amount))
+      items    = estimate.estimate_line_items.reload
+      subtotal = items.sum(:amount)
+      tax      = items.sum { |i| i.amount * i.tax_rate / 100 }
+      estimate.update!(total: subtotal + tax)
       estimate
     end
   end
