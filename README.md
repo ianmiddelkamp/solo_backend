@@ -1,5 +1,8 @@
 # Solo — Rails API Backend
 
+<img width="966" height="446" alt="image" src="https://github.com/user-attachments/assets/302b6845-4345-405b-b4d2-4a6116572f50" />
+
+
 A Rails 8 API-only backend for Solo, a freelance invoicing and time tracking application. Handles clients, projects, charge codes, time tracking, task management, estimates, invoice generation with PDF output, file attachments, SOW import via AI, and email delivery.
 
 ## Tech Stack
