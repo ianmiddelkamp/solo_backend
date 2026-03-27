@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_26_000005) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_27_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -60,6 +60,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_26_000005) do
     t.string "state"
     t.decimal "tax_rate", precision: 5, scale: 2, default: "0.0", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "charge_codes", force: :cascade do |t|
+    t.string "code", null: false
+    t.datetime "created_at", null: false
+    t.string "description"
+    t.decimal "rate", precision: 10, scale: 2
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "code"], name: "index_charge_codes_on_user_id_and_code", unique: true
+    t.index ["user_id"], name: "index_charge_codes_on_user_id"
   end
 
   create_table "clients", force: :cascade do |t|
@@ -173,16 +184,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_26_000005) do
   end
 
   create_table "time_entries", force: :cascade do |t|
+    t.bigint "charge_code_id"
+    t.bigint "client_id"
     t.datetime "created_at", null: false
     t.date "date", null: false
     t.text "description"
     t.decimal "hours", precision: 5, scale: 2, null: false
-    t.bigint "project_id", null: false
+    t.bigint "project_id"
     t.datetime "started_at"
     t.datetime "stopped_at"
     t.bigint "task_id"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["charge_code_id"], name: "index_time_entries_on_charge_code_id"
+    t.index ["client_id"], name: "index_time_entries_on_client_id"
     t.index ["project_id"], name: "index_time_entries_on_project_id"
     t.index ["task_id"], name: "index_time_entries_on_task_id"
     t.index ["user_id"], name: "index_time_entries_on_user_id"
@@ -214,6 +229,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_26_000005) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "charge_codes", "users"
   add_foreign_key "estimate_line_items", "estimates"
   add_foreign_key "estimate_line_items", "tasks"
   add_foreign_key "estimates", "projects"
@@ -226,6 +242,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_26_000005) do
   add_foreign_key "rates", "users"
   add_foreign_key "task_groups", "projects"
   add_foreign_key "tasks", "task_groups"
+  add_foreign_key "time_entries", "charge_codes"
+  add_foreign_key "time_entries", "clients"
   add_foreign_key "time_entries", "projects"
   add_foreign_key "time_entries", "tasks"
   add_foreign_key "time_entries", "users"

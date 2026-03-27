@@ -25,12 +25,18 @@ Rails.application.routes.draw do
   end
 
   resources :invoices, except: [:new, :edit] do
+    collection do
+      get :unbilled_entries
+    end
     member do
       get  :pdf
       post :regenerate_pdf
       post :send_invoice
     end
   end
+
+  resources :charge_codes, except: [:new, :edit, :show]
+  resources :time_entries, only: [:index, :show, :create, :update, :destroy]
 
   resources :clients do
     resource :rate, only: [:show, :update]

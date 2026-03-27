@@ -22,7 +22,7 @@
     <% @items.each do |item| %>
       <tr>
         <td><%= item.time_entry.date.strftime("%d %b %Y") %></td>
-        <td><%= item.time_entry.project.name %></td>
+        <td><%= item.time_entry.project&.name || item.time_entry.charge_code&.code %></td>
         <td><%= item.description.presence || "—" %></td>
         <td class="right"><%= "%.2f" % item.hours %></td>
         <td class="right">$<%= "%.2f" % item.rate %></td>

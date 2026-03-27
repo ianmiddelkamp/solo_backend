@@ -1,13 +1,14 @@
 class InvoiceGenerator
-  def initialize(client:, start_date: nil, end_date: nil)
-    @client     = client
-    @start_date = start_date
-    @end_date   = end_date
-    @tax_rate   = BusinessProfile.instance.tax_rate || 0
+  def initialize(client:, start_date: nil, end_date: nil, time_entry_ids: nil)
+    @client          = client
+    @start_date      = start_date
+    @end_date        = end_date
+    @time_entry_ids  = time_entry_ids
+    @tax_rate        = BusinessProfile.instance.tax_rate || 0
   end
 
   def generate!
-    time_entries = unbilled_entries
+    time_entries = @time_entry_ids.present? ? specific_entries : unbilled_entries
     return nil if time_entries.empty?
 
     ActiveRecord::Base.transaction do
@@ -41,26 +42,41 @@ class InvoiceGenerator
 
   private
 
-  def unbilled_entries
-    scope = TimeEntry.joins(:project)
-                     .left_outer_joins(:invoice_line_item)
-                     .where(projects: { client_id: @client.id })
-                     .where(invoice_line_items: { id: nil })
-                     .includes(:task, project: :rates)
+  def specific_entries
+    TimeEntry.where(id: @time_entry_ids)
+             .includes(:task, :charge_code, project: :rates)
+  end
 
-    scope = scope.where("date >= ?", @start_date) if @start_date.present?
-    scope = scope.where("date <= ?", @end_date) if @end_date.present?
+  def unbilled_entries
+    scope = TimeEntry
+      .left_outer_joins(:invoice_line_item, :project)
+      .where(invoice_line_items: { id: nil })
+      .where(
+        "(time_entries.project_id IS NOT NULL AND projects.client_id = :cid) OR " \
+        "(time_entries.charge_code_id IS NOT NULL AND time_entries.client_id = :cid)",
+        cid: @client.id
+      )
+      .includes(:task, :charge_code, project: :rates)
+
+    scope = scope.where("time_entries.date >= ?", @start_date) if @start_date.present?
+    scope = scope.where("time_entries.date <= ?", @end_date) if @end_date.present?
     scope
   end
 
   def build_description(entry)
-    parts = [entry.description.presence, entry.task&.title.presence].compact
+    if entry.charge_code_id.present?
+      parts = [entry.charge_code.code, entry.description.presence].compact
+    else
+      parts = [entry.description.presence, entry.task&.title.presence].compact
+    end
     parts.join(" · ")
   end
 
   def effective_rate(entry)
-    entry.project.rates.first&.rate ||
-      entry.project.client.rates.first&.rate ||
-      0
+    if entry.charge_code_id.present?
+      entry.charge_code.rate || @client.rates.first&.rate || 0
+    else
+      entry.project.rates.first&.rate || @client.rates.first&.rate || 0
+    end
   end
 end

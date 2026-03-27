@@ -10,13 +10,39 @@ class InvoicesController < ApplicationController
     render json: invoice_json(@invoice)
   end
 
+  def unbilled_entries
+    client = Client.find(params[:client_id])
+
+    scope = TimeEntry
+      .left_outer_joins(:invoice_line_item, :project)
+      .where(invoice_line_items: { id: nil })
+      .where(
+        "(time_entries.project_id IS NOT NULL AND projects.client_id = :cid) OR " \
+        "(time_entries.charge_code_id IS NOT NULL AND time_entries.client_id = :cid)",
+        cid: client.id
+      )
+      .includes(:task, :charge_code, project: {})
+
+    scope = scope.where("time_entries.date >= ?", params[:start_date]) if params[:start_date].present?
+    scope = scope.where("time_entries.date <= ?", params[:end_date]) if params[:end_date].present?
+
+    render json: scope.order("time_entries.date desc").as_json(
+      include: {
+        task: { only: %i[id title] },
+        project: { only: %i[id name] },
+        charge_code: { only: %i[id code description] }
+      }
+    )
+  end
+
   def create
     client = Client.find(params[:client_id])
 
     invoice = InvoiceGenerator.new(
       client: client,
       start_date: params[:start_date],
-      end_date: params[:end_date]
+      end_date: params[:end_date],
+      time_entry_ids: params[:time_entry_ids]
     ).generate!
 
     if invoice.nil?
@@ -101,7 +127,7 @@ class InvoicesController < ApplicationController
       include: {
         client: {},
         invoice_line_items: {
-          include: { time_entry: { include: :project } }
+          include: { time_entry: { include: [:project, :charge_code] } }
         }
       }
     )
