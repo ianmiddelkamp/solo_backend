@@ -3,6 +3,7 @@ class EstimatesController < ApplicationController
 
   def index
     estimates = Estimate.includes(project: :client).order(created_at: :desc)
+    estimates = estimates.where(project_id: params[:project_id]) if params[:project_id].present?
     render json: estimates.as_json(
       methods: :number,
       include: { project: { only: %i[id name], include: { client: { only: %i[id name] } } } }

@@ -5,6 +5,8 @@
 
 A Rails 8 API-only backend for Solo, a freelance invoicing and time tracking application. Handles clients, projects, charge codes, time tracking, task management, estimates, invoice generation with PDF output, file attachments, SOW import via AI, and email delivery.
 
+**Frontend:** [ianmiddelkamp/solo_frontend](https://github.com/ianmiddelkamp/solo_frontend)
+
 ## Tech Stack
 
 - **Ruby** 3.4 / **Rails** 8.1
