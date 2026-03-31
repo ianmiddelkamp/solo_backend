@@ -60,7 +60,9 @@ class TimerSessionsController < ApplicationController
       render json: { error: "No active timer." }, status: :not_found
       return
     end
-    session.update!(description: params[:description])
+    attrs = { description: params[:description] }
+    attrs[:task_id] = params[:task_id].presence if params.key?(:task_id)
+    session.update!(attrs)
     render json: session_json(session)
   end
 
