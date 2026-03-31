@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_27_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_31_201105) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -98,7 +98,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_000001) do
     t.bigint "estimate_id", null: false
     t.decimal "hours", precision: 5, scale: 2, null: false
     t.decimal "rate", precision: 8, scale: 2, null: false
-    t.bigint "task_id", null: false
+    t.bigint "task_id"
     t.decimal "tax_rate", precision: 5, scale: 2, default: "0.0", null: false
     t.datetime "updated_at", null: false
     t.index ["estimate_id"], name: "index_estimate_line_items_on_estimate_id"
@@ -231,7 +231,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_000001) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "charge_codes", "users"
   add_foreign_key "estimate_line_items", "estimates"
-  add_foreign_key "estimate_line_items", "tasks"
+  add_foreign_key "estimate_line_items", "tasks", on_delete: :nullify
   add_foreign_key "estimates", "projects"
   add_foreign_key "invoice_line_items", "invoices"
   add_foreign_key "invoice_line_items", "time_entries"
@@ -248,6 +248,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_000001) do
   add_foreign_key "time_entries", "tasks"
   add_foreign_key "time_entries", "users"
   add_foreign_key "timer_sessions", "projects"
-  add_foreign_key "timer_sessions", "tasks"
+  add_foreign_key "timer_sessions", "tasks", on_delete: :nullify
   add_foreign_key "timer_sessions", "users"
 end
