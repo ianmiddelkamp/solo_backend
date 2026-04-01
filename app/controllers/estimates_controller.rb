@@ -2,7 +2,7 @@ class EstimatesController < ApplicationController
   before_action :set_estimate, only: [:show, :update, :destroy, :pdf, :regenerate_pdf, :send_estimate]
 
   def index
-    estimates = Estimate.includes(project: :client).order(created_at: :desc)
+    estimates = Estimate.includes(project: :client).order(created_at: :asc)
     estimates = estimates.where(project_id: params[:project_id]) if params[:project_id].present?
     render json: estimates.as_json(
       methods: :number,
@@ -97,7 +97,7 @@ class EstimatesController < ApplicationController
   private
 
   def set_estimate
-    @estimate = Estimate.find(params[:id])
+    @estimate = Estimate.includes(estimate_line_items: { task: :time_entries }).find(params[:id])
   end
 
   def diff_since_last_sent(estimate)
@@ -118,25 +118,37 @@ class EstimatesController < ApplicationController
     return nil unless snapshot.present?
 
     prev_by_task = snapshot.index_by { |i| i["task_id"] }
-    curr_items   = estimate.estimate_line_items.map { |i|
-      { "task_id" => i.task_id, "description" => i.description, "hours" => i.hours.to_f, "amount" => i.amount.to_f }
+    curr_items   = estimate.estimate_line_items.includes(:task).map { |i|
+      {
+        "task_id"      => i.task_id,
+        "description"  => i.description,
+        "hours"        => i.hours.to_f,
+        "amount"       => i.amount.to_f,
+        "completed"    => i.task&.status == "done",
+        "actual_hours" => i.task&.actual_hours&.to_f
+      }
     }
     curr_by_task = curr_items.index_by { |i| i["task_id"] }
 
-    added   = curr_items.reject { |i| prev_by_task[i["task_id"]] }
-    removed = snapshot.reject { |i| curr_by_task[i["task_id"]] }
-    changed = curr_items.filter_map do |i|
+    added     = curr_items.reject { |i| prev_by_task[i["task_id"]] }
+    removed   = snapshot.reject { |i| curr_by_task[i["task_id"]] }
+    changed   = curr_items.filter_map do |i|
       prev = prev_by_task[i["task_id"]]
       next unless prev && prev["hours"] != i["hours"]
       { "description" => i["description"], "old_hours" => prev["hours"], "new_hours" => i["hours"] }
     end
+    completed = curr_items.filter_map do |i|
+      next unless i["completed"] && i["actual_hours"].to_f != i["hours"]
+      { "description" => i["description"], "estimated_hours" => i["hours"], "actual_hours" => i["actual_hours"].to_f }
+    end
 
-    return nil if added.empty? && removed.empty? && changed.empty?
+    return nil if added.empty? && removed.empty? && changed.empty? && completed.empty?
 
     {
       added: added,
       removed: removed,
       changed: changed,
+      completed: completed,
       previous_total: previous_total,
       current_total: estimate.total
     }
@@ -156,7 +168,8 @@ class EstimatesController < ApplicationController
           include: { client: {} }
         },
         estimate_line_items: {
-          include: { task: { only: %i[id title] } }
+          methods: %i[effective_amount],
+          include: { task: { only: %i[id title status], methods: %i[actual_hours] } }
         }
       }
     )

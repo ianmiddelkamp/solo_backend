@@ -4,7 +4,7 @@ class EstimateMailer < ApplicationMailer
     @client   = estimate.project.client
     @project  = estimate.project
     @business = BusinessProfile.instance
-    @items    = estimate.estimate_line_items.includes(task: :task_group).order("estimate_line_items.id ASC")
+    @items    = estimate.estimate_line_items.includes(task: [:task_group, :time_entries]).order("estimate_line_items.id ASC")
     @changes  = changes
 
     attachments["#{@estimate.number}.pdf"] = {
