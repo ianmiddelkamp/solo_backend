@@ -62,11 +62,20 @@ class EstimatesController < ApplicationController
     changes = diff_since_last_sent(@estimate)
     EstimateMailer.estimate_email(@estimate, changes).deliver_now
 
+    snapshot_items = @estimate.estimate_line_items.includes(task: :time_entries)
     @estimate.update!(
-      last_sent_snapshot: @estimate.estimate_line_items.map { |i|
-        { "task_id" => i.task_id, "description" => i.description, "hours" => i.hours.to_f, "amount" => i.amount.to_f }
+      last_sent_snapshot: snapshot_items.map { |i|
+        {
+          "task_id"      => i.task_id,
+          "description"  => i.description,
+          "hours"        => i.hours.to_f,
+          "amount"       => i.amount.to_f,
+          "status"       => i.task&.status,
+          "actual_hours" => i.task&.actual_hours.to_f
+        }
       },
-      last_sent_total: @estimate.total
+      last_sent_total: snapshot_items.sum { |i| i.task&.status == 'done' ? i.task.actual_hours.to_f * i.rate : i.amount } +
+                       snapshot_items.sum { |i| (i.task&.status == 'done' ? i.task.actual_hours.to_f * i.rate : i.amount) * i.tax_rate / 100 }
     )
 
     render json: { message: "Estimate sent to #{@estimate.project.client.email1}." }
@@ -118,7 +127,7 @@ class EstimatesController < ApplicationController
     return nil unless snapshot.present?
 
     prev_by_task = snapshot.index_by { |i| i["task_id"] }
-    curr_items   = estimate.estimate_line_items.includes(:task).map { |i|
+    curr_items   = estimate.estimate_line_items.includes(task: :time_entries).map { |i|
       {
         "task_id"      => i.task_id,
         "description"  => i.description,
@@ -138,11 +147,19 @@ class EstimatesController < ApplicationController
       { "description" => i["description"], "old_hours" => prev["hours"], "new_hours" => i["hours"] }
     end
     completed = curr_items.filter_map do |i|
-      next unless i["completed"] && i["actual_hours"].to_f != i["hours"]
+      prev = prev_by_task[i["task_id"]]
+      next unless i["completed"]
+      prev_actual = prev&.dig("actual_hours").to_f
+      next if i["actual_hours"].to_f == prev_actual
       { "description" => i["description"], "estimated_hours" => i["hours"], "actual_hours" => i["actual_hours"].to_f }
     end
 
     return nil if added.empty? && removed.empty? && changed.empty? && completed.empty?
+
+    line_items      = estimate.estimate_line_items.includes(task: :time_entries)
+    item_amount     = ->(i) { i.task&.status == 'done' ? i.task.actual_hours.to_f * i.rate : i.amount }
+    effective_total = line_items.sum { |i| item_amount.call(i) } +
+                      line_items.sum { |i| item_amount.call(i) * i.tax_rate / 100 }
 
     {
       added: added,
@@ -150,7 +167,7 @@ class EstimatesController < ApplicationController
       changed: changed,
       completed: completed,
       previous_total: previous_total,
-      current_total: estimate.total
+      current_total: effective_total.round(2)
     }
   end
 
@@ -168,7 +185,6 @@ class EstimatesController < ApplicationController
           include: { client: {} }
         },
         estimate_line_items: {
-          methods: %i[effective_amount],
           include: { task: { only: %i[id title status], methods: %i[actual_hours] } }
         }
       }

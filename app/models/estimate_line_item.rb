@@ -4,9 +4,4 @@ class EstimateLineItem < ApplicationRecord
 
   validates :hours, :rate, :amount, presence: true
 
-  def effective_amount
-    return amount unless task&.status == 'done'
-    actual = task.actual_hours.to_f
-    (actual * rate).round(2)
-  end
 end
