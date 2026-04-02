@@ -40,8 +40,9 @@ class EstimateGenerator
 
   def estimated_tasks
     @project.task_groups
+            .order(:position)
             .includes(:tasks)
-            .flat_map(&:tasks)
+            .flat_map { |g| g.tasks.order(:position) }
             .select { |t| t.estimated_hours.present? && t.estimated_hours > 0 }
   end
 
