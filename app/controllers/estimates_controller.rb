@@ -74,8 +74,8 @@ class EstimatesController < ApplicationController
           "actual_hours" => i.task&.actual_hours.to_f
         }
       },
-      last_sent_total: snapshot_items.sum { |i| i.task&.status == 'done' ? i.task.actual_hours.to_f * i.rate : i.amount } +
-                       snapshot_items.sum { |i| (i.task&.status == 'done' ? i.task.actual_hours.to_f * i.rate : i.amount) * i.tax_rate / 100 }
+      last_sent_total: snapshot_items.sum { |i| i.task&.status == "done" ? i.task.actual_hours.to_f * i.rate : i.amount } +
+                       snapshot_items.sum { |i| (i.task&.status == "done" ? i.task.actual_hours.to_f * i.rate : i.amount) * i.tax_rate / 100 }
     )
 
     render json: { message: "Estimate sent to #{@estimate.project.client.email1}." }
@@ -157,7 +157,7 @@ class EstimatesController < ApplicationController
     return nil if added.empty? && removed.empty? && changed.empty? && completed.empty?
 
     line_items      = estimate.estimate_line_items.includes(task: :time_entries)
-    item_amount     = ->(i) { i.task&.status == 'done' ? i.task.actual_hours.to_f * i.rate : i.amount }
+    item_amount     = ->(i) { i.task&.status == "done" ? i.task.actual_hours.to_f * i.rate : i.amount }
     effective_total = line_items.sum { |i| item_amount.call(i) } +
                       line_items.sum { |i| item_amount.call(i) * i.tax_rate / 100 }
 
