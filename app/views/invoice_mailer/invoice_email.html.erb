@@ -7,13 +7,6 @@
       .wrapper    { max-width: 600px; margin: 32px auto; background: #ffffff; border-radius: 8px; overflow: hidden; }
       .body       { padding: 28px 32px; }
       .body p     { margin: 0 0 16px; line-height: 1.6; color: #374151; }
-      table       { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px; }
-      th          { background: <%= @business.primary_color.presence || '#4338ca' %>; color: #ffffff; text-align: left; padding: 8px 10px; }
-      th.right,
-      td.right    { text-align: right; }
-      td          { padding: 8px 10px; border-bottom: 1px solid #e5e7eb; color: #374151; }
-      tr:nth-child(even) td { background: #f9fafb; }
-      .total-row td { font-weight: bold; border-top: 2px solid #e5e7eb; border-bottom: none; }
       .footer     { padding: 16px 32px; background: #f9fafb; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280; }
     </style>
   </head>
@@ -37,51 +30,9 @@
 
       <div class="body">
         <p>Hi <%= @client.contact_name.presence || @client.name %>,</p>
-        <p>Please find your invoice attached. Here's a summary:</p>
-
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Project</th>
-              <th>Description</th>
-              <th class="right">Hours</th>
-              <th class="right">Rate</th>
-              <th class="right">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @items.each do |item| %>
-              <tr>
-                <td><%= item.time_entry.date.strftime("%d %b %Y") %></td>
-                <td><%= item.time_entry.project.name %></td>
-                <td><%= item.description.presence || "—" %></td>
-                <td class="right"><%= "%.2f" % item.hours %></td>
-                <td class="right">$<%= "%.2f" % item.rate %></td>
-                <td class="right">$<%= "%.2f" % item.amount %></td>
-              </tr>
-            <% end %>
-            <% subtotal   = @items.sum(&:amount)
-               tax_amount = @items.sum { |i| i.amount * i.tax_rate / 100 }
-               tax_rate   = @items.map(&:tax_rate).find { |r| r > 0 } %>
-            <% if tax_amount > 0 %>
-              <tr>
-                <td colspan="5" class="right" style="color:#6b7280;">Subtotal</td>
-                <td class="right" style="color:#6b7280;">$<%= "%.2f" % subtotal %></td>
-              </tr>
-              <tr>
-                <td colspan="5" class="right" style="color:#6b7280;">HST (<%= "%.4g" % tax_rate %>%)</td>
-                <td class="right" style="color:#6b7280;">$<%= "%.2f" % tax_amount %></td>
-              </tr>
-            <% end %>
-            <tr class="total-row">
-              <td colspan="5" class="right">Total</td>
-              <td class="right">$<%= "%.2f" % @invoice.total %></td>
-            </tr>
-          </tbody>
-        </table>
-
+        <p>Please find your invoice attached. The total amount due is <strong>$<%= "%.2f" % @invoice.total %></strong>.</p>
         <p>Payment terms: <strong><%= @client.sales_terms.presence || @business.default_payment_terms.presence || "NET 15" %></strong></p>
+        <p>Payment can be made by Interac e-Transfer to the email below.</p>
         <p><%= @business.invoice_footer.presence || "Thank you for your business." %></p>
 
         <% if @business.name.present? %>

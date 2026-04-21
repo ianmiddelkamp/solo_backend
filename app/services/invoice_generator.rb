@@ -8,7 +8,7 @@ class InvoiceGenerator
   end
 
   def generate!
-    time_entries = @time_entry_ids.present? ? specific_entries : unbilled_entries
+    time_entries = sort_entries(@time_entry_ids.present? ? specific_entries : unbilled_entries)
     return nil if time_entries.empty?
 
     ActiveRecord::Base.transaction do
@@ -42,9 +42,19 @@ class InvoiceGenerator
 
   private
 
+  def sort_entries(entries)
+    entries.sort_by do |e|
+      [
+        e.task&.task_group&.position || Float::INFINITY,
+        e.task&.position             || Float::INFINITY,
+        e.date
+      ]
+    end
+  end
+
   def specific_entries
     entries = TimeEntry.where(id: @time_entry_ids)
-                       .includes(:task, :charge_code, invoice_line_item: {}, project: :rates)
+                       .includes({ task: :task_group }, :charge_code, { project: :rates }, :invoice_line_item)
     already_billed = entries.select { |e| e.invoice_line_item.present? }
     raise ArgumentError, "Some entries are already billed" if already_billed.any?
     entries
@@ -59,7 +69,7 @@ class InvoiceGenerator
         "(time_entries.charge_code_id IS NOT NULL AND time_entries.client_id = :cid)",
         cid: @client.id
       )
-      .includes(:task, :charge_code, project: :rates)
+      .includes({ task: :task_group }, :charge_code, { project: :rates })
 
     scope = scope.where("time_entries.date >= ?", @start_date) if @start_date.present?
     scope = scope.where("time_entries.date <= ?", @end_date) if @end_date.present?
@@ -70,7 +80,11 @@ class InvoiceGenerator
     if entry.charge_code_id.present?
       parts = [entry.charge_code.code, entry.description.presence].compact
     else
-      parts = [entry.description.presence, entry.task&.title.presence].compact
+      parts = [
+        entry.task&.task_group&.title.presence,
+        entry.task&.title.presence,
+        entry.description.presence
+      ].compact
     end
     parts.join(" · ")
   end

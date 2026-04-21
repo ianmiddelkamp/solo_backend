@@ -3,7 +3,6 @@ class InvoiceMailer < ApplicationMailer
     @invoice  = invoice
     @client   = invoice.client
     @business = BusinessProfile.instance
-    @items    = invoice.invoice_line_items.includes(time_entry: :project).order("time_entries.date ASC")
 
     attachments["#{@invoice.number}.pdf"] = {
       mime_type: "application/pdf",
