@@ -5,9 +5,4 @@ class Rate < ApplicationRecord
 
   validates :rate, presence: true, numericality: { greater_than_or_equal_to: 0 }
 
-  def as_json(options = {})
-    super(options).tap do |h|
-      h['rate'] = rate.to_f if h.key?('rate')
-    end
-  end
 end

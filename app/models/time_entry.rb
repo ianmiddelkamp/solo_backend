@@ -10,12 +10,6 @@ class TimeEntry < ApplicationRecord
   validates :hours, presence: true, numericality: { greater_than: 0 }
   validate :project_or_charge_code_required
 
-  def as_json(options = {})
-    super(options).tap do |h|
-      h['hours'] = hours.to_f if h.key?('hours')
-    end
-  end
-
   private
 
   def project_or_charge_code_required
