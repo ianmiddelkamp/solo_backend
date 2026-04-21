@@ -9,7 +9,13 @@ class Task < ApplicationRecord
   validates :estimated_hours, numericality: { greater_than: 0 }, allow_nil: true
 
   def actual_hours
-    time_entries.sum(:hours)
+    time_entries.sum(:hours).to_f
+  end
+
+  def as_json(options = {})
+    super(options).tap do |h|
+      h['estimated_hours'] = estimated_hours.to_f if h.key?('estimated_hours') && estimated_hours
+    end
   end
 
   def last_entry_date
