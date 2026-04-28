@@ -64,11 +64,11 @@ class SowImporter
 
   def parse
     raw = case @provider
-          when "anthropic" then call_anthropic
-          when "gemini"    then call_gemini
-          when "groq"      then call_openai_compatible
-          when "ollama"    then call_ollama
-          end
+    when "anthropic" then call_anthropic
+    when "gemini"    then call_gemini
+    when "groq"      then call_openai_compatible
+    when "ollama"    then call_ollama
+    end
     normalize(JSON.parse(extract_json(raw)))
   rescue JSON::ParserError => e
     raise "Failed to parse AI response as JSON: #{e.message}"

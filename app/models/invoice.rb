@@ -5,8 +5,13 @@ class Invoice < ApplicationRecord
   has_one_attached :pdf
 
   validates :status, inclusion: { in: %w[pending sent paid] }
+  validates :amount_paid, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
 
   def number
     "INV-#{id.to_s.rjust(4, '0')}"
+  end
+
+  def outstanding
+    (total || 0) - (amount_paid || 0)
   end
 end

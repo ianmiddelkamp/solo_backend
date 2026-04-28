@@ -1,9 +1,9 @@
 class InvoicesController < ApplicationController
-  before_action :set_invoice, only: [:show, :update, :destroy, :pdf, :regenerate_pdf, :send_invoice]
+  before_action :set_invoice, only: [:show, :update, :destroy, :pdf, :regenerate_pdf, :send_invoice, :mark_as_paid, :send_receipt]
 
   def index
     invoices = Invoice.includes(:client).order(created_at: :desc)
-    render json: invoices.as_json(include: :client, methods: :number)
+    render json: invoices.as_json(include: :client, methods: [:number, :outstanding])
   end
 
   def show
@@ -75,6 +75,11 @@ class InvoicesController < ApplicationController
   end
 
   def destroy
+    if @invoice.status == "paid"
+      render json: { error: "Paid invoices cannot be deleted." }, status: :unprocessable_entity
+      return
+    end
+
     @invoice.destroy
     head :no_content
   end
@@ -94,6 +99,20 @@ class InvoicesController < ApplicationController
     render json: { message: "Invoice sent to #{@invoice.client.email1}." }
   end
 
+  def send_receipt
+    unless @invoice.client.email1.present?
+      render json: { error: "Client has no email address on file." }, status: :unprocessable_entity
+      return
+    end
+
+    unless @invoice.pdf.attached?
+      render json: { error: "No PDF found. Please regenerate the PDF first." }, status: :unprocessable_entity
+      return
+    end
+
+    InvoiceMailer.receipt_email(@invoice).deliver_now
+    render json: { message: "Receipt sent to #{@invoice.client.email1}." }
+  end
   def regenerate_pdf
     pdf_data = PdfGenerator.new(@invoice).generate
     @invoice.pdf.attach(
@@ -116,6 +135,20 @@ class InvoicesController < ApplicationController
       disposition: "attachment"
   end
 
+  def mark_as_paid
+    unless @invoice.paid_at.nil?
+      render json: { error: "Invoice already paid" }, status: :method_not_allowed
+      return
+    end
+
+
+    if @invoice.update({ status: "paid", paid_at: Time.current }.merge(paid_params))
+      render json: invoice_json(@invoice)
+    else
+      render json: { errors: @invoice.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def set_invoice
@@ -136,5 +169,9 @@ class InvoicesController < ApplicationController
         }
       }
     )
+  end
+
+   def paid_params
+    params.require(:payment).permit(:paid_at, :amount_paid)
   end
 end

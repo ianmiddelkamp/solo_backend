@@ -32,6 +32,8 @@ Rails.application.routes.draw do
       get  :pdf
       post :regenerate_pdf
       post :send_invoice
+      post :mark_as_paid
+      post :send_receipt
     end
   end
 

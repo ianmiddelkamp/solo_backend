@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_31_201105) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_28_160107) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -131,9 +131,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_31_201105) do
   end
 
   create_table "invoices", force: :cascade do |t|
+    t.decimal "amount_paid", precision: 10, scale: 2
     t.bigint "client_id", null: false
     t.datetime "created_at", null: false
     t.date "end_date"
+    t.datetime "paid_at"
     t.string "pdf_url"
     t.date "start_date"
     t.string "status", default: "pending"
