@@ -1,9 +1,9 @@
 class InvoicesController < ApplicationController
-  before_action :set_invoice, only: [:show, :update, :destroy, :pdf, :regenerate_pdf, :send_invoice]
+  before_action :set_invoice, only: [:show, :update, :destroy, :pdf, :regenerate_pdf, :send_invoice, :mark_as_paid]
 
   def index
     invoices = Invoice.includes(:client).order(created_at: :desc)
-    render json: invoices.as_json(include: :client, methods: :number)
+    render json: invoices.as_json(include: :client, methods: [:number, :outstanding])
   end
 
   def show
@@ -116,6 +116,20 @@ class InvoicesController < ApplicationController
       disposition: "attachment"
   end
 
+  def mark_as_paid
+    unless @invoice.paid_at.nil?
+      render json: { error: "Invoice already paid"}, status: :method_not_allowed
+      return
+    end
+
+    
+    if @invoice.update({ status: "paid", paid_at: Time.current }.merge(paid_params))
+      render json: invoice_json(@invoice)
+    else
+      render json: { errors: @invoice.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def set_invoice
@@ -136,5 +150,9 @@ class InvoicesController < ApplicationController
         }
       }
     )
+  end
+
+   def paid_params
+    params.require(:payment).permit(:paid_at, :amount_paid)
   end
 end
