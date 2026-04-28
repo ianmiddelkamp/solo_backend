@@ -1,5 +1,24 @@
 class InvoiceMailer < ApplicationMailer
   def invoice_email(invoice)
+    set_up(invoice)
+
+    mail(
+      to:      @client.email1,
+      subject: "Invoice #{invoice.number} from #{@business.name.presence || 'us'}"
+    )
+  end
+
+  def receipt_email(invoice)
+    set_up(invoice)
+    mail(
+      to:      @client.email1,
+      subject: "Payment Received for invoice #{invoice.number}"
+    )
+  end
+
+  private
+
+  def set_up(invoice)
     @invoice  = invoice
     @client   = invoice.client
     @business = BusinessProfile.instance
@@ -15,10 +34,5 @@ class InvoiceMailer < ApplicationMailer
         mime_type: @business.logo.content_type
       }
     end
-
-    mail(
-      to:      @client.email1,
-      subject: "Invoice #{invoice.number} from #{@business.name.presence || 'us'}"
-    )
   end
 end

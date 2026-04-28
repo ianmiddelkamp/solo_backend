@@ -11,7 +11,7 @@ class Invoice < ApplicationRecord
     "INV-#{id.to_s.rjust(4, '0')}"
   end
 
-  def outstanding 
+  def outstanding
     (total || 0) - (amount_paid || 0)
   end
 end

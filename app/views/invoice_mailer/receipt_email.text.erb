@@ -1,0 +1,15 @@
+Hi <%= @client.contact_name.presence || @client.name %>,
+
+Thank you — we have received your payment of $<%= "%.2f" % @invoice.amount_paid %> on <%= @invoice.paid_at.in_time_zone.strftime("%B %-d, %Y") %>.
+
+Your paid invoice (<%= @invoice.number %>) is attached for your records.
+
+<%= @business.invoice_footer.presence || "Thank you for your business." %>
+
+<% if @business.name.present? %>
+--
+<%= @business.name %>
+<% if @business.email.present? %><%= @business.email %><% end %>
+<% if @business.phone.present? %><%= @business.phone %><% end %>
+<% if @business.hst_number.present? %>HST # <%= @business.hst_number %><% end %>
+<% end %>
