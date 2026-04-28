@@ -4,5 +4,4 @@ class ChargeCode < ApplicationRecord
 
   validates :code, presence: true, uniqueness: { scope: :user_id }
   validates :rate, numericality: { greater_than: 0, allow_nil: true }
-
 end
