@@ -7,6 +7,7 @@ class ChargeCodesController < ApplicationController
 
   def create
     @charge_code = ChargeCode.new(charge_code_params)
+    @charge_code.user = @current_user
     if @charge_code.save
       render json: @charge_code, status: :created
     else
@@ -34,6 +35,6 @@ class ChargeCodesController < ApplicationController
   end
 
   def charge_code_params
-    params.require(:charge_code).permit(:user_id, :code, :description, :rate)
+    params.require(:charge_code).permit(:code, :description, :rate)
   end
 end
