@@ -1,8 +1,10 @@
 class ProjectsController < ApplicationController
-  before_action :set_project, only: [:show, :update, :destroy]
+  before_action :set_project, only: [:show, :update, :destroy, :archive]
 
   def index
-    render json: Project.includes(:client, :rates).order(:name).as_json(
+    projects = Project.includes(:client, :rates).order(:name)
+    projects = projects.where(is_archived: false) unless params[:show_archived].present?
+    render json: projects.as_json(
       include: :client,
       methods: :current_rate
     )
@@ -29,6 +31,14 @@ class ProjectsController < ApplicationController
     end
   end
 
+  def archive
+    if @project.update(archive_params)
+      render json: { success: true }
+    else
+      render json: { errors: @project.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
   def destroy
     @project.destroy
     head :no_content
@@ -42,5 +52,9 @@ class ProjectsController < ApplicationController
 
   def project_params
     params.require(:project).permit(:name, :client_id, :description)
+  end
+
+  def archive_params
+    params.require(:project).permit(:is_archived)
   end
 end
