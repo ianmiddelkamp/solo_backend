@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   mount LetterOpenerWeb::Engine, at: "/letter_opener" if defined?(LetterOpenerWeb)
 
   post "/auth/login", to: "auth#login"
+  get  "/features",   to: "features#index"
 
   get    "/timer",       to: "timer_sessions#current"
   post   "/timer/start", to: "timer_sessions#start"

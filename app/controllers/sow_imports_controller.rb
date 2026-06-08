@@ -1,5 +1,7 @@
 class SowImportsController < ApplicationController
   def create
+    return render json: { error: "SOW import is not configured on this server." }, status: :service_unavailable unless SowImporter.available?
+
     text = if params[:text].present?
       params[:text]
     elsif params[:file].present?

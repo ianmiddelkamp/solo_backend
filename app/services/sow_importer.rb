@@ -28,6 +28,14 @@ class SowImporter
     }
   }.freeze
 
+  def self.available?
+    provider = Rails.application.config.sow_provider
+    return false if provider.blank?
+    return false unless PROVIDERS.key?(provider)
+    return false if Rails.application.config.sow_api_key.blank? && provider != "ollama"
+    true
+  end
+
   def initialize(text)
     @text     = text
     @provider = Rails.application.config.sow_provider
