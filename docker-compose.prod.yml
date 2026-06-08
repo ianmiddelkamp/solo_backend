@@ -1,25 +1,14 @@
 version: "3.9"
 services:
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASS}
-      POSTGRES_DB: invoice_prod
-    ports:
-      - "5433:5432"
-    volumes:
-      - db_prod_data:/var/lib/postgresql/data
-
   web:
     volumes:
       - storage_prod:/rails/storage
     environment:
       RAILS_ENV: production
       RACK_ENV: production
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: invoice_prod
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
       GMAIL_USER: ${GMAIL_USER}
@@ -31,15 +20,14 @@ services:
     environment:
       RAILS_ENV: production
       RACK_ENV: production
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: invoice_prod
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
       GMAIL_USER: ${GMAIL_USER}
       GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD}
 
 volumes:
-  db_prod_data:
   storage_prod:
   ollama_data:

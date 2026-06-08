@@ -10,7 +10,7 @@ A Rails 8 API-only backend for Solo, a freelance invoicing and time tracking app
 ## Tech Stack
 
 - **Ruby** 3.4 / **Rails** 8.1
-- **PostgreSQL** 15
+- **PostgreSQL** 17 (Supabase in production, Docker locally)
 - **Redis** + **Sidekiq** — background job processing
 - **Prawn** — PDF generation
 - **Active Storage** — file storage (PDFs, project attachments)
@@ -19,12 +19,12 @@ A Rails 8 API-only backend for Solo, a freelance invoicing and time tracking app
 
 ## Environments
 
-Two isolated environments, each with its own PostgreSQL instance, credentials, and data volume.
+Two isolated environments with separate databases and credentials.
 
-| | Development | Production (local) |
+| | Development | Production |
 |---|---|---|
-| Database | `invoice_dev` | `invoice_prod` |
-| PostgreSQL port | 5432 | 5433 |
+| Database | `invoice_dev` (Docker) | Supabase (PostgreSQL 17) |
+| PostgreSQL port | 5432 | 5432 (Supabase pooler) |
 | Rails env | `development` | `production` |
 | Email | letter_opener_web | SMTP (configure separately) |
 | Compose file | `docker-compose.yml` | `docker-compose.yml` + `docker-compose.prod.yml` |
@@ -48,6 +48,9 @@ Fill in values before starting.
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `SECRET_KEY_BASE` | Rails secret key | required |
+| `DB_HOST` | PostgreSQL host | `localhost` |
+| `DB_PORT` | PostgreSQL port | `5432` |
+| `DB_NAME` | Database name | `invoice_dev` |
 | `DB_USER` | PostgreSQL username | required |
 | `DB_PASS` | PostgreSQL password | required |
 | `SOW_PROVIDER` | AI provider for SOW import (`ollama`, `groq`, `anthropic`, `gemini`) | `ollama` |
@@ -100,20 +103,22 @@ Then use `solo-prod up`, `solo-prod exec web ...`, etc.
 
 ### Production — First Run
 
+Run migrations against Supabase (ensure `.env.prod` has the correct `DB_*` values):
+
 ```bash
-solo-prod run --rm web bundle exec rails db:create db:migrate db:seed
+solo-prod run --rm web bundle exec rails db:migrate
 solo-prod exec ollama ollama pull phi3:mini
 ```
 
 ## Backups
 
-A backup script is provided at `scripts/backup.sh`. It dumps the database and copies Active Storage files.
+A backup script is provided at `scripts/backup.sh`. It dumps the Supabase database directly and copies Active Storage files.
 
 ```bash
 bash scripts/backup.sh
 ```
 
-Run from the project root with production containers up (`.env.prod` must exist). Backups are written to `~/backups/invoice/prod/` with timestamps and 14-day retention.
+Run from the project root (`.env.prod` must exist). No containers need to be running — the script connects directly to Supabase. Requires `postgresql-client-17` (`sudo apt install postgresql-client-17`). Backups are written to `~/backups/invoice/prod/` with timestamps and 14-day retention.
 
 ## API Endpoints
 

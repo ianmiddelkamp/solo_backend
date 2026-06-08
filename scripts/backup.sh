@@ -32,12 +32,11 @@ if [ -z "${DB_USER:-}" ]; then
   exit 1
 fi
 
-# Derive DB name and env label from which file was loaded
+# Derive env label from which file was loaded
 case "$ENV_FILE" in
-  *prod*) DB_NAME="invoice_prod"; ENV_LABEL="prod" ;;
+  *prod*) ENV_LABEL="prod" ;;
   *)
     echo "⚠️  Dev environment detected — backups are for production only."
-    echo "   Start prod with 'invoice-prod up -d' then re-run."
     exit 0
     ;;
 esac
@@ -47,15 +46,16 @@ FILES_BACKUP_DIR=$BACKUP_DIR/$ENV_LABEL/files
 
 mkdir -p "$DB_BACKUP_DIR" "$FILES_BACKUP_DIR"
 
-echo "Environment: $ENV_LABEL ($DB_NAME)"
+echo "Environment: $ENV_LABEL ($DB_HOST/$DB_NAME)"
 echo ""
 
 # --- Database ---
 echo "📦 Backing up database..."
 DB_FILE="$DB_BACKUP_DIR/${DB_NAME}_$TIMESTAMP.sql.gz"
 
-docker exec invoice_app-db-1 \
-  pg_dump -U "$DB_USER" "$DB_NAME" \
+PGPASSWORD="$DB_PASS" /usr/lib/postgresql/17/bin/pg_dump \
+  -h "$DB_HOST" -p "${DB_PORT:-5432}" -U "$DB_USER" "$DB_NAME" \
+  --no-owner --no-privileges \
   | gzip > "$DB_FILE"
 
 DB_SIZE=$(du -sh "$DB_FILE" | cut -f1)
